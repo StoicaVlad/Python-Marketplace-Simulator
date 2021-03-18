@@ -2,4 +2,4 @@
 
 ## `assignments/`
 
-Contains skeletons and tests for ACS assignments.
+Contains skeletons and tests for ASC assignments.
