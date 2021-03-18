@@ -5,6 +5,7 @@ http://ocw.cs.pub.ro/courses/asc/teme/tema1
 
 # Testare
 
+
 * Folositi scriptul run_tests.sh.
 * Schimbați înainte de a îl rula variabila PYTHON din interiorul lui cu path-ul de pe sistemul vostru
 * Fișierele de input și output-referință se află în directorul tests/
@@ -14,6 +15,7 @@ http://ocw.cs.pub.ro/courses/asc/teme/tema1
    * puteți da comanda pylint pe sursele voastre sau să decomentați linia pentru pylint din scriptul run_tests.sh
 
 Directorul test-gen conține scripturi pentru generarea testelor.
+
 * README_TESTS - descrie formatul json al fișierelor de intrare
 * test_generator.py - generează fișierele aferente unui test
 * test_utils.py - constante utilizate în test_generator
