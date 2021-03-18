@@ -1,4 +1,4 @@
-# Arhitectura Sistemelor de calcul - Tema 1 - Marketplace, Martie 2021
+# Arhitectura Sistemelor de Calcul - Tema 1 - Marketplace, Martie 2021
 
 ## Sistemul de testare si testele temei
 
