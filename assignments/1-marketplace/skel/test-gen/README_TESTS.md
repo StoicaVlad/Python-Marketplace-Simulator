@@ -39,6 +39,8 @@ Vor exista mai multe obiecte ce vor constitui produsele care vor putea fi cumpă
 ### Producer Key (“producers”):
 
 Lista de obiecte -- fiecare obiect va contine următoarele mapări:
+
+
 - “name”: numele producatorului
 - “products”: lista de liste -- fiecare lista interioară va contine:
     - id-ul produsului pe care îl va furniza
@@ -59,6 +61,7 @@ Lista de obiecte -- fiecare obiect va contine următoarele mapări:
 ```
 
 Exemplul de mai sus descrie un singur producător cu numele “prod1”. Produsele pe care acesta le va furniza au id-urile id1, respectiv id2 (id-uri ce vor fi mapate la obiecte de tip Cafea / Ceai). Cantitatea produselor care au id-ul “id1” cu care va aproviziona producătorul “prod1” Marketplace-ul, este 2, pentru cele cu id-ul “id2” fiind 1. Fiecare produs va avea propriul timp de procesare:
+
 - produs “id1” -> 0.1 secunde
 - produs “id2” -> 0.3 secunde
 
@@ -66,6 +69,8 @@ Exemplul de mai sus descrie un singur producător cu numele “prod1”. Produse
 ### Consumers Key (“consumers”):
 
 Lista de obiecte -- fiecare obiect contine următoarele mapări:
+
+
 - “name”: numele cumparatorului
 - “retry_wait_time”: timpul de așteptare al consumatorului în cazul în care produsul pe care îl dorește nu este disponibil
 - “carts”: lista de liste -- fiecare dintre listele interne va conține tipul de operație ce va fie efectuată de către consumator:
@@ -102,6 +107,7 @@ Lista de obiecte -- fiecare obiect contine următoarele mapări:
 ```
 
 Exemplul de mai sus descrie un singur consumator cu numele “cons1”. Operațiile pe care acesta le va efectua asupra coșului său de cumpărături sunt următoarele:
+
 - va adăuga în coș doua produse cu id-ul “id1”
 - va elimina din cos un produs cu id-ul “id1”
 - va adăuga în coș trei produse cu id-ul “id2”
