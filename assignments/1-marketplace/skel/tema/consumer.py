@@ -7,7 +7,6 @@ March 2021
 """
 
 from threading import Thread
-from marketplace import Marketplace
 import time
 
 
@@ -16,7 +15,7 @@ class Consumer(Thread):
     Class that represents a consumer.
     """
 
-    def __init__(self, carts, marketplace: Marketplace, retry_wait_time, **kwargs):
+    def __init__(self, carts, marketplace, retry_wait_time, **kwargs):
         """
         Constructor.
 
@@ -40,24 +39,25 @@ class Consumer(Thread):
         self.kwargs = kwargs
 
     def run(self):
-        while True:
-            cart_id = self.marketplace.new_cart()
-            for p in self.carts:
-                for elem in p:
-                    command = elem.get("type")
-                    product = elem.get("product")
-                    quantity = elem.get("quantity")
-                    if command == "remove":
-                        i = 0
-                        while i < quantity:
-                            self.marketplace.remove_from_cart(cart_id, product)
+        cart_id = self.marketplace.new_cart()
+        for p in self.carts:
+            for elem in p:
+                command = elem.get("type")
+                product = elem.get("product")
+                quantity = elem.get("quantity")
+                if command == "remove":
+                    i = 0
+                    while i < quantity:
+                        self.marketplace.remove_from_cart(cart_id, product)
+                        i += 1
+                elif command == "add":
+                    i = 0
+                    while i < quantity:
+                        no_wait = self.marketplace.add_to_cart(cart_id, product)
+                        if no_wait:
                             i += 1
-                    elif command == "add":
-                        i = 0
-                        no_wait = True
-                        while i < quantity:
-                            no_wait = self.marketplace.add_to_cart(cart_id, product)
-                            if no_wait:
-                                i += 1
-                            else:
-                                time.sleep(self.retry_wait_time)
+                        else:
+                            time.sleep(self.retry_wait_time)
+        order = self.marketplace.place_order(cart_id)
+        for prod in order:
+            print(self.name, "bought", prod)

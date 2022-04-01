@@ -32,15 +32,13 @@ class Marketplace:
         self.no_carts = 0
 
         self.queue_size_per_producer = queue_size_per_producer
-        self.queue = Queue(queue_size_per_producer)
-        print(self.queue.qsize())
 
     def register_producer(self):
         """
         Returns an id for the producer that calls this.
         """
         self.no_producers += 1
-        self.producers[self.no_producers] = []
+        self.producers.append(list())
         return self.no_producers
 
     def publish(self, producer_id, product):
@@ -57,13 +55,14 @@ class Marketplace:
         """
         product_list = self.producers[producer_id]
         self.lock_producer.acquire()
-        if len(product_list) == self.queue_size_per_producer:
-            self.lock_producer.release()
-            return False
+        if len(product_list) >= self.queue_size_per_producer:
+            can_publish = False
         else:
             product_list.append(product)
-            self.lock_producer.release()
-            return True
+            can_publish = True
+
+        self.lock_producer.release()
+        return can_publish
 
     def new_cart(self):
         """
@@ -72,7 +71,7 @@ class Marketplace:
         :returns an int representing the cart_id
         """
         self.no_carts += 1
-        self.carts[self.no_carts] = []
+        self.carts.append(list())
         return self.no_carts
 
     def add_to_cart(self, cart_id, product):
@@ -87,6 +86,7 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
+        can_add = False
         index = -1
         self.lock_consumer.acquire()
         for i in range(0, self.no_producers):
@@ -98,11 +98,10 @@ class Marketplace:
         if index >= 0:
             self.producers[index].remove(product)
             self.carts[cart_id].append(product)
-            self.lock_consumer.release()
-            return True
+            can_add = True
 
         self.lock_consumer.release()
-        return False
+        return can_add
 
     def remove_from_cart(self, cart_id, product):
         """
@@ -127,6 +126,7 @@ class Marketplace:
                     id_producer = i
             if id_producer >= 0:
                 self.producers[id_producer].append(product)
+
         self.lock_consumer.release()
 
     def place_order(self, cart_id):
