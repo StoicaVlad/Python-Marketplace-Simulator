@@ -41,12 +41,16 @@ class Producer(Thread):
     def run(self):
         while True:
             prod_id = self.marketplace.register_producer()
-            for p in self.products:
+            for product in self.products:
                 i = 0
-                while i < p[1]:
-                    no_wait = self.marketplace.publish(prod_id, p[0])
-                    if no_wait:
-                        i += 1
-                        time.sleep(p[2])
-                    else:
-                        time.sleep(self.republish_wait_time)
+                self.publish(i, prod_id, product)
+
+    def publish(self, i, prod_id, product):
+        """Method for publishing a product or waiting if that operation is not possible"""
+        while i < product[1]:
+            no_wait = self.marketplace.publish(prod_id, product[0])
+            if no_wait:
+                i += 1
+                time.sleep(product[2])
+            else:
+                time.sleep(self.republish_wait_time)

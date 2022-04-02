@@ -6,9 +6,15 @@ Assignment 1
 March 2021
 """
 
-import uuid
-from queue import Queue
 from threading import Lock
+from logging.handlers import RotatingFileHandler
+import logging
+
+logging.basicConfig(
+    filename='marketplace.log',
+    level=logging.DEBUG
+)
+handler = RotatingFileHandler('marketplace.log', maxBytes=2000, backupCount=10)
 
 
 class Marketplace:
@@ -37,8 +43,9 @@ class Marketplace:
         """
         Returns an id for the producer that calls this.
         """
+        logging.info("A new producer is registered.")
         self.no_producers += 1
-        self.producers.append(list())
+        self.producers.append([])
         return self.no_producers
 
     def publish(self, producer_id, product):
@@ -53,15 +60,18 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again.
         """
+        logging.info('Producer with id %d is publishig the product: %s', producer_id, product)
+        if producer_id > self.no_producers:
+            logging.error('Producer with id: %d does not exist', producer_id)
+            raise ValueError("Producer does not exist!")
         product_list = self.producers[producer_id]
-        self.lock_producer.acquire()
-        if len(product_list) >= self.queue_size_per_producer:
-            can_publish = False
-        else:
-            product_list.append(product)
-            can_publish = True
-
-        self.lock_producer.release()
+        with self.lock_producer:
+            if len(product_list) >= self.queue_size_per_producer:
+                can_publish = False
+            else:
+                product_list.append(product)
+                can_publish = True
+        logging.info("Producer published: %s", str(can_publish))
         return can_publish
 
     def new_cart(self):
@@ -71,7 +81,7 @@ class Marketplace:
         :returns an int representing the cart_id
         """
         self.no_carts += 1
-        self.carts.append(list())
+        self.carts.append([])
         return self.no_carts
 
     def add_to_cart(self, cart_id, product):
@@ -88,19 +98,17 @@ class Marketplace:
         """
         can_add = False
         index = -1
-        self.lock_consumer.acquire()
-        for i in range(0, self.no_producers):
-            for p in self.producers[i]:
-                if p == product:
-                    index = i
-                    break
+        with self.lock_consumer:
+            for i in range(0, self.no_producers):
+                for prod_in_list in self.producers[i]:
+                    if prod_in_list == product:
+                        index = i
+                        break
+            if index >= 0:
+                self.producers[index].remove(product)
+                self.carts[cart_id].append(product)
+                can_add = True
 
-        if index >= 0:
-            self.producers[index].remove(product)
-            self.carts[cart_id].append(product)
-            can_add = True
-
-        self.lock_consumer.release()
         return can_add
 
     def remove_from_cart(self, cart_id, product):
@@ -115,19 +123,16 @@ class Marketplace:
         """
         found = False
         id_producer = -1
-        self.lock_consumer.acquire()
-        if product in self.carts[cart_id]:
-            found = True
-
-        if found:
-            self.carts[cart_id].remove(product)
-            for i in range(0, self.no_producers):
-                if product in self.producers[i]:
-                    id_producer = i
-            if id_producer >= 0:
-                self.producers[id_producer].append(product)
-
-        self.lock_consumer.release()
+        with self.lock_consumer:
+            if product in self.carts[cart_id]:
+                found = True
+            if found:
+                self.carts[cart_id].remove(product)
+                for i in range(0, self.no_producers):
+                    if product in self.producers[i]:
+                        id_producer = i
+                if id_producer >= 0:
+                    self.producers[id_producer].append(product)
 
     def place_order(self, cart_id):
         """
@@ -136,4 +141,6 @@ class Marketplace:
         :type cart_id: Int
         :param cart_id: id cart
         """
+        if cart_id > self.no_carts:
+            raise ValueError("Cart does not exist!")
         return self.carts[cart_id].copy()

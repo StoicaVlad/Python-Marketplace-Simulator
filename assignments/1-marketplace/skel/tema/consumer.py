@@ -40,11 +40,11 @@ class Consumer(Thread):
 
     def run(self):
         cart_id = self.marketplace.new_cart()
-        for p in self.carts:
-            for elem in p:
-                command = elem.get("type")
-                product = elem.get("product")
-                quantity = elem.get("quantity")
+        for product in self.carts:
+            for attribute in product:
+                command = attribute.get("type")
+                product = attribute.get("product")
+                quantity = attribute.get("quantity")
                 if command == "remove":
                     i = 0
                     while i < quantity:
