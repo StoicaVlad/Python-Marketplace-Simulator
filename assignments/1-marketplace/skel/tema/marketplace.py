@@ -10,11 +10,14 @@ from threading import Lock
 from logging.handlers import RotatingFileHandler
 import logging
 
+logger = logging.getLogger(__name__)
+handler = RotatingFileHandler('marketplace.log', maxBytes=2500, backupCount=10)
+logger.addHandler(handler)
+
 logging.basicConfig(
     filename='marketplace.log',
-    level=logging.DEBUG
+    level=logging.INFO
 )
-handler = RotatingFileHandler('marketplace.log', maxBytes=2000, backupCount=10)
 
 
 class Marketplace:
@@ -43,9 +46,10 @@ class Marketplace:
         """
         Returns an id for the producer that calls this.
         """
-        logging.info("A new producer is registered.")
+        logger.info("A new producer is registered.")
         self.no_producers += 1
         self.producers.append([])
+        logger.info("Producer registered. Total number:%d", self.no_producers)
         return self.no_producers
 
     def publish(self, producer_id, product):
@@ -60,10 +64,10 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again.
         """
-        logging.info('Producer with id %d is publishig the product: %s', producer_id, product)
-        if producer_id > self.no_producers:
-            logging.error('Producer with id: %d does not exist', producer_id)
-            raise ValueError("Producer does not exist!")
+        logger.info('Producer with id %d is publishig the product: %s', producer_id, product)
+        #if producer_id > self.no_producers:
+        #    logger.error('Producer with id: %d does not exist', producer_id)
+        #    raise ValueError("Producer does not exist!")
         product_list = self.producers[producer_id]
         with self.lock_producer:
             if len(product_list) >= self.queue_size_per_producer:
@@ -71,7 +75,7 @@ class Marketplace:
             else:
                 product_list.append(product)
                 can_publish = True
-        logging.info("Producer published: %s", str(can_publish))
+        logger.info("Producer published: %s", str(can_publish))
         return can_publish
 
     def new_cart(self):
@@ -80,8 +84,10 @@ class Marketplace:
 
         :returns an int representing the cart_id
         """
+        logger.info("New cart is being created.")
         self.no_carts += 1
         self.carts.append([])
+        logger.info("Cart created! No. carts:%d", self.no_carts)
         return self.no_carts
 
     def add_to_cart(self, cart_id, product):
@@ -96,6 +102,7 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
+        logger.info("Cart %d tries to add the product:%s", cart_id, product)
         can_add = False
         index = -1
         with self.lock_consumer:
@@ -107,8 +114,10 @@ class Marketplace:
             if index >= 0:
                 self.producers[index].remove(product)
                 self.carts[cart_id].append(product)
+                logger.info("Product was added to the cart!")
                 can_add = True
 
+        logger.info("Product couldn't be added to the cart!")
         return can_add
 
     def remove_from_cart(self, cart_id, product):
@@ -121,6 +130,7 @@ class Marketplace:
         :type product: Product
         :param product: the product to remove from cart
         """
+        logger.info("Cart no. %d tries to remove the product %s.", cart_id, product)
         found = False
         id_producer = -1
         with self.lock_consumer:
@@ -131,6 +141,7 @@ class Marketplace:
                 for i in range(0, self.no_producers):
                     if product in self.producers[i]:
                         id_producer = i
+                logger.info("Product was removed from the cart.")
                 if id_producer >= 0:
                     self.producers[id_producer].append(product)
 
@@ -141,6 +152,9 @@ class Marketplace:
         :type cart_id: Int
         :param cart_id: id cart
         """
-        if cart_id > self.no_carts:
-            raise ValueError("Cart does not exist!")
+        logger.info("Cart with id: %d places an order.", cart_id)
+        #if cart_id > self.no_carts:
+        #    logger.error("Invalid cart id!")
+        #    raise ValueError("Cart does not exist!")
+        logger.info("Order was placed! The list of products is:%s", self.carts[cart_id])
         return self.carts[cart_id].copy()
