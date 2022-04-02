@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
 formatter.converter = time.gmtime()
 
-handler = RotatingFileHandler('marketplace.log', maxBytes=2500, backupCount=10)
+handler = RotatingFileHandler('marketplace.log', maxBytes=5000, backupCount=10)
 handler.setFormatter(formatter)
 
 logger.addHandler(handler)
