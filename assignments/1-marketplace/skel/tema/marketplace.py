@@ -11,16 +11,16 @@ from logging.handlers import RotatingFileHandler
 import logging
 import time
 
-logger = logging.getLogger('marketplace_logger')
-logger.setLevel(logging.INFO)
+LOGGER = logging.getLogger('marketplace_logger')
+LOGGER.setLevel(logging.INFO)
 
-formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-formatter.converter = time.gmtime()
+FORMATTER = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+FORMATTER.converter = time.gmtime()
 
-handler = RotatingFileHandler('marketplace.log', maxBytes=5000, backupCount=10)
-handler.setFormatter(formatter)
+HANDLER = RotatingFileHandler('marketplace.log', maxBytes=5000, backupCount=10)
+HANDLER.setFormatter(FORMATTER)
 
-logger.addHandler(handler)
+LOGGER.addHandler(HANDLER)
 
 
 class Marketplace:
@@ -49,10 +49,10 @@ class Marketplace:
         """
         Returns an id for the producer that calls this.
         """
-        logger.info("A new producer is registered.")
+        LOGGER.info("A new producer is registered.")
         self.no_producers += 1
         self.producers.append([])
-        logger.info("Producer with id %s registerd.", self.no_producers)
+        LOGGER.info("Producer with id %s registerd.", self.no_producers)
         return self.no_producers
 
     def publish(self, producer_id, product):
@@ -67,9 +67,9 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again.
         """
-        logger.info('Producer with id %d is publishig the product: %s', producer_id, product)
+        LOGGER.info('Producer with id %d is publishig the product: %s', producer_id, product)
         if producer_id > self.no_producers:
-            logger.error('Producer with id: %d does not exist', producer_id)
+            LOGGER.error('Producer with id: %d does not exist', producer_id)
             raise ValueError("Producer does not exist!")
         product_list = self.producers[producer_id]
         with self.lock_producer:
@@ -78,7 +78,7 @@ class Marketplace:
             else:
                 product_list.append(product)
                 can_publish = True
-        logger.info("Producer published: %s", str(can_publish))
+        LOGGER.info("Producer published: %s", str(can_publish))
         return can_publish
 
     def new_cart(self):
@@ -87,7 +87,7 @@ class Marketplace:
 
         :returns an int representing the cart_id
         """
-        logger.info("New cart with id %d is being created.", self.no_carts + 1)
+        LOGGER.info("New cart with id %d is being created.", self.no_carts + 1)
         self.no_carts += 1
         self.carts.append([])
         return self.no_carts
@@ -104,7 +104,7 @@ class Marketplace:
 
         :returns True or False. If the caller receives False, it should wait and then try again
         """
-        logger.info("Cart with id %d is adding %s.", cart_id, product)
+        LOGGER.info("Cart with id %d is adding %s.", cart_id, product)
         can_add = False
         index = -1
         with self.lock_consumer:
@@ -119,9 +119,9 @@ class Marketplace:
                 can_add = True
 
         if can_add:
-            logger.info("Product was added to the cart.")
+            LOGGER.info("Product was added to the cart.")
         else:
-            logger.info("Product could not be added to the cart.")
+            LOGGER.info("Product could not be added to the cart.")
 
         return can_add
 
@@ -135,7 +135,7 @@ class Marketplace:
         :type product: Product
         :param product: the product to remove from cart
         """
-        logger.info("Cart with id %d is removing product %s.", cart_id, product)
+        LOGGER.info("Cart with id %d is removing product %s.", cart_id, product)
         found = False
         id_producer = -1
         with self.lock_consumer:
@@ -146,7 +146,7 @@ class Marketplace:
                 for i in range(0, self.no_producers):
                     if product in self.producers[i]:
                         id_producer = i
-                logger.info("Product was removed.")
+                LOGGER.info("Product was removed.")
                 if id_producer >= 0:
                     self.producers[id_producer].append(product)
 
@@ -157,9 +157,9 @@ class Marketplace:
         :type cart_id: Int
         :param cart_id: id cart
         """
-        logger.info("Cart with id %d placed an order.", cart_id)
+        LOGGER.info("Cart with id %d placed an order.", cart_id)
         if cart_id > self.no_carts:
-            logger.error("Cart with id %d is invalid!", cart_id)
+            LOGGER.error("Cart with id %d is invalid!", cart_id)
             raise ValueError("Cart does not exist!")
-        logger.info("Product list: %s.", self.carts[cart_id])
+        LOGGER.info("Product list: %s.", self.carts[cart_id])
         return self.carts[cart_id].copy()
