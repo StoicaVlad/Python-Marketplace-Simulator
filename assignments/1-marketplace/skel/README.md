@@ -8,12 +8,14 @@ folosit 2 lock-uri (lock_consumer, lock_producer) pentru
 a acoperi sectiunile critice ale marketplace-ului.
 Aceste sctiuni critice apar in momentul in care un produs
 este adaugat sau eliminat dintr-un cos de cumparaturi, sau
-cand un producator publica un nou produs. Pentru a elimina
-functiile de acquire si release, s-a folosit keyword-ul "with".
-In marketplace, exista o lista de producatori, fiecare avand
-o lista cu produsele publicate, si o lista de cart-uri, cu
-produsele adaugate. Tema putea fi implementata si folosind 
-queue pentru listele de prducatori si cart-uri, care sunt thread-safe.
+cand un producator publica un nou produs.
+
+Pentru a elimina  functiile de acquire si release, s-a folosit 
+keyword-ul "with". In marketplace, exista o lista de producatori, 
+fiecare avand o lista cu produsele publicate, si o lista de cart-uri, cu
+produsele adaugate. Implementarea din tema are o lista de liste, pentru
+producatori si consumatori, operatiile de append si remove fiind thread-safe.
+
 Un caz nespecificat in enunt si care nu apare in teste este
 trimiterea unui parametru gresit la functiile de "publish",
 "add_to_cart", "remove_from_cart". Daca id-ul cart-ului sau

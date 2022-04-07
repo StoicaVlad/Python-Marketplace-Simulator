@@ -53,6 +53,7 @@ class Marketplace:
         self.no_producers += 1
         self.producers.append([])
         LOGGER.info("Producer with id %s registerd.", self.no_producers)
+
         return self.no_producers
 
     def publish(self, producer_id, product):
@@ -71,6 +72,7 @@ class Marketplace:
         if producer_id > self.no_producers:
             LOGGER.error('Producer with id: %d does not exist', producer_id)
             raise ValueError("Producer does not exist!")
+
         product_list = self.producers[producer_id]
         with self.lock_producer:
             if len(product_list) >= self.queue_size_per_producer:
@@ -79,6 +81,7 @@ class Marketplace:
                 product_list.append(product)
                 can_publish = True
         LOGGER.info("Producer published: %s", str(can_publish))
+
         return can_publish
 
     def new_cart(self):
@@ -90,6 +93,7 @@ class Marketplace:
         LOGGER.info("New cart with id %d is being created.", self.no_carts + 1)
         self.no_carts += 1
         self.carts.append([])
+
         return self.no_carts
 
     def add_to_cart(self, cart_id, product):
@@ -114,7 +118,6 @@ class Marketplace:
                         index = i
                         break
             if index >= 0:
-                self.producers[index].remove(product)
                 self.carts[cart_id].append(product)
                 can_add = True
 
@@ -137,21 +140,16 @@ class Marketplace:
         """
         LOGGER.info("Cart with id %d is removing product %s.", cart_id, product)
         found = False
-        id_producer = -1
         with self.lock_consumer:
             if product in self.carts[cart_id]:
                 found = True
             if found:
                 self.carts[cart_id].remove(product)
-                for i in range(0, self.no_producers):
-                    if product in self.producers[i]:
-                        id_producer = i
-                LOGGER.info("Product was removed.")
-                if id_producer >= 0:
-                    self.producers[id_producer].append(product)
 
     def place_order(self, cart_id):
         """
+        Removes the products from a producer that are in
+        a certain cart.
         Return a list with all the products in the cart.
 
         :type cart_id: Int
@@ -161,5 +159,13 @@ class Marketplace:
         if cart_id > self.no_carts:
             LOGGER.error("Cart with id %d is invalid!", cart_id)
             raise ValueError("Cart does not exist!")
+
+        for prod in self.carts[cart_id]:
+            for producer in self.producers:
+                if prod in producer:
+                    producer.remove(prod)
+                    break
+
         LOGGER.info("Product list: %s.", self.carts[cart_id])
+
         return self.carts[cart_id].copy()
